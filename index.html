@@ -1,4 +1,4 @@
-<title>Randnotiz</title>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}body{margin:0}</style></head><body><title>Randnotiz</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,6 +41,7 @@
   --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 28px rgba(0,0,0,.35);
   color-scheme:dark;
 }
+[hidden]{display:none!important}
 html,body{height:100%}
 body{background:var(--paper);color:var(--ink);font-family:var(--f-ui);font-size:14px;overflow:hidden;-webkit-text-size-adjust:100%}
 button,select,input,textarea{font:inherit;color:inherit}
@@ -259,7 +260,6 @@ textarea{width:100%;min-height:9em;border:1px solid var(--line);border-radius:8p
     <header><h3 id="svTitle">Your sheet</h3>
       <div class="grp"><button class="btn" type="button" id="svClose">Back to reading</button><button class="btn primary" type="button" id="svSave">Save file</button></div></header>
     <iframe class="preview" id="svFrame" title="Sheet preview" sandbox=""></iframe>
-    <p class="muted">One HTML file per chapter: every passage with your handwriting under it, sorted by category, Private last. Open it in any browser, open it in Randnotiz again to keep working, or send it to Claude.</p>
   </div>
 </div>
 
@@ -744,3 +744,4 @@ if(hot&&hot.snapshot)hot.snapshot(()=>({S,sel}));
 if(hot&&hot.ready)hot.ready(start);else start(hot&&hot.data?hot.data:{});
 })();
 </script>
+</body></html>
