@@ -127,8 +127,8 @@ select.btn{padding-right:26px;max-width:15em}
 .menu .confirm{padding:6px 10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:.86rem}
 .sheet{position:relative;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--pad);min-height:0}
 .sheet canvas{display:block;touch-action:none}
-.rail{position:absolute;left:0;top:0;width:44px;touch-action:pan-y;z-index:2}
-.hint{position:absolute;left:58px;top:14px;right:14px;color:var(--muted);pointer-events:none;
+.rail{position:absolute;right:0;top:0;width:44px;touch-action:pan-y;z-index:2}
+.hint{position:absolute;left:16px;top:14px;right:58px;color:var(--muted);pointer-events:none;
   font-family:var(--f-read);font-style:italic;font-size:1rem;line-height:1.5;z-index:1}
 
 /* overlays */
@@ -477,7 +477,7 @@ function drawRules(c){
   const g=gap();c.fillStyle=css('--pad');c.fillRect(0,0,W,H);
   c.strokeStyle=css('--pad-rule');c.lineWidth=1;c.beginPath();
   for(let y=g*1.4;y<H;y+=g){c.moveTo(0,Math.round(y)+.5);c.lineTo(W,Math.round(y)+.5)}c.stroke();
-  c.strokeStyle=css('--pad-margin');c.beginPath();c.moveTo(MARGIN+.5,0);c.lineTo(MARGIN+.5,H);c.stroke();
+  c.strokeStyle=css('--pad-margin');c.beginPath();const mx=W-MARGIN+.5;c.moveTo(mx,0);c.lineTo(mx,H);c.stroke();
 }
 function inkColor(k,forExport){if(forExport)return k==='b'?'#2846A8':'#191C24';return css(k==='b'?'--ink-b':'--ink-k')}
 function samplesOf(pts){
