@@ -693,10 +693,11 @@ $('#fileIn').addEventListener('change',async e=>{
 const WNS='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 async function parseDocx(buf){
   const zip=await JSZip.loadAsync(buf);const docF=zip.file('word/document.xml');if(!docF)throw new Error('no document.xml');
-  const xml=new DOMParser().parseFromString(await docF.async('string'),'application/xml');
+  const xml=new DOMParser().parseFromString((await docF.async('string')).replace(/^﻿/,''),'application/xml');
+  if(xml.getElementsByTagName('parsererror').length)throw new Error('document.xml did not parse');
   const val=el=>el?(el.getAttributeNS(WNS,'val')||el.getAttribute('w:val')):null;const names={};
   const stF=zip.file('word/styles.xml');
-  if(stF){const sx=new DOMParser().parseFromString(await stF.async('string'),'application/xml');
+  if(stF){const sx=new DOMParser().parseFromString((await stF.async('string')).replace(/^﻿/,''),'application/xml');
     Array.from(sx.getElementsByTagNameNS(WNS,'style')).forEach(s=>{const n=s.getElementsByTagNameNS(WNS,'name')[0];names[s.getAttributeNS(WNS,'styleId')||s.getAttribute('w:styleId')]=n?val(n):''})}
   const paras=[];
   Array.from(xml.getElementsByTagNameNS(WNS,'p')).forEach(p=>{
