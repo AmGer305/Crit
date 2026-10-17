@@ -21,6 +21,7 @@
   --ink-k:#191C24; --ink-b:#2846A8;
   --hl-g:rgba(70,165,82,.34); --hl-r:rgba(222,70,70,.28); --hl-y:rgba(236,188,28,.42);
   --dot-g:#3E9A4B; --dot-r:#D04545; --dot-y:#C2950C;
+  --hl-p:rgba(214,166,30,.40); --hl-w:rgba(128,22,36,.34); --dot-p:#B8890F; --dot-w:#8B1E2D;
   --chip:#E2E5EC; --chip-on:#1D2230; --chip-on-ink:#F8F9F6;
   --shadow:0 1px 2px rgba(20,24,40,.08),0 8px 28px rgba(20,24,40,.10);
   --f-read:"Literata",Georgia,"Times New Roman",serif;
@@ -34,6 +35,7 @@
   --ink-k:#ECEEF2; --ink-b:#A3B6FF;
   --hl-g:rgba(98,192,108,.30); --hl-r:rgba(240,98,98,.30); --hl-y:rgba(238,198,60,.30);
   --dot-g:#6CC277; --dot-r:#F07373; --dot-y:#E5C24A;
+  --hl-p:rgba(232,190,70,.30); --hl-w:rgba(214,84,104,.30); --dot-p:#E3BC4E; --dot-w:#D9607A;
   --chip:#262A33; --chip-on:#E3E5EA; --chip-on-ink:#171A20;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 28px rgba(0,0,0,.35);
   color-scheme:dark;
@@ -45,6 +47,7 @@
   --ink-k:#ECEEF2; --ink-b:#A3B6FF;
   --hl-g:rgba(98,192,108,.30); --hl-r:rgba(240,98,98,.30); --hl-y:rgba(238,198,60,.30);
   --dot-g:#6CC277; --dot-r:#F07373; --dot-y:#E5C24A;
+  --hl-p:rgba(232,190,70,.30); --hl-w:rgba(214,84,104,.30); --dot-p:#E3BC4E; --dot-w:#D9607A;
   --chip:#262A33; --chip-on:#E3E5EA; --chip-on-ink:#171A20;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 28px rgba(0,0,0,.35);
   color-scheme:dark;
@@ -77,7 +80,7 @@ select.btn{padding-right:26px;max-width:15em}
 .sw{width:28px;height:28px;border-radius:50%;border:2px solid transparent;padding:0;display:inline-grid;place-items:center;background:transparent}
 .sw i{width:18px;height:18px;border-radius:50%;display:block}
 .sw[aria-checked="true"]{border-color:var(--ink)}
-.sw.g i{background:var(--dot-g)} .sw.r i{background:var(--dot-r)} .sw.y i{background:var(--dot-y)}
+.sw.g i{background:var(--dot-g)} .sw.r i{background:var(--dot-r)} .sw.y i{background:var(--dot-y)} .sw.p i{background:var(--dot-p)} .sw.w i{background:var(--dot-w)}
 
 /* desk: reader | divider | pad */
 .desk{display:grid;grid-template-columns:minmax(0,1fr) 14px minmax(280px,var(--padw));min-height:0}
@@ -95,19 +98,26 @@ select.btn{padding-right:26px;max-width:15em}
 .text p{margin:0;text-indent:1.5em;position:relative}
 .text p.first{text-indent:0}
 .text p.center{text-align:center;text-indent:0;margin-block:.8em}
+.text.rev{font-family:"Palatino Linotype","Book Antiqua",Palatino,"URW Palladio L",serif;line-height:2.05}
+.doors{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.door{text-align:left;padding:18px 16px;border:1px solid var(--line);border-radius:12px;background:var(--paper);display:grid;gap:4px}
+.door:hover{border-color:var(--muted)}
+.door b{font-family:var(--f-read);font-weight:600;font-size:1.1rem}
+.door span{color:var(--muted)}
+#wContinue{width:100%;justify-content:flex-start;margin-bottom:10px;min-height:44px}
 .pn{position:absolute;left:-56px;width:36px;text-align:right;top:.3em;font-family:var(--f-ui);font-size:.66rem;
   color:var(--muted);opacity:.55;text-indent:0;line-height:1.2;font-variant-numeric:tabular-nums;font-style:normal}
 .pn.has{opacity:1;color:var(--ink);font-weight:600}
 .pn.has::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:5px;vertical-align:1px;background:var(--pnc,var(--accent))}
 .w.em{font-style:italic}
 .h{background:var(--hlc)}
-.h.c-g{--hlc:var(--hl-g)} .h.c-r{--hlc:var(--hl-r)} .h.c-y{--hlc:var(--hl-y)}
+.h.c-g{--hlc:var(--hl-g)} .h.c-r{--hlc:var(--hl-r)} .h.c-y{--hlc:var(--hl-y)} .h.c-p{--hlc:var(--hl-p)} .h.c-w{--hlc:var(--hl-w)}
 .h.hs{border-top-left-radius:4px;border-bottom-left-radius:4px}
 .h.he{border-top-right-radius:4px;border-bottom-right-radius:4px}
 .h.sel{box-shadow:0 2px 0 var(--accent)}
 .h.tmp{outline:1px dashed var(--muted)}
 .h.dn{background:transparent;text-decoration:underline dotted var(--dl);text-decoration-thickness:2px;text-underline-offset:5px}
-.h.dn.c-g{--dl:var(--dot-g)} .h.dn.c-r{--dl:var(--dot-r)} .h.dn.c-y{--dl:var(--dot-y)}
+.h.dn.c-g{--dl:var(--dot-g)} .h.dn.c-r{--dl:var(--dot-r)} .h.dn.c-y{--dl:var(--dot-y)} .h.dn.c-p{--dl:var(--dot-p)} .h.dn.c-w{--dl:var(--dot-w)}
 .btn.done{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
 .banner{margin:14px 22px 0 66px;max-width:38em;padding:12px 14px;border-radius:10px;background:var(--accent-soft);
   font-size:.92rem;line-height:1.45;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
@@ -254,9 +264,8 @@ textarea{width:100%;min-height:9em;border:1px solid var(--line);border-radius:8p
       <div class="row"><span class="lbl">Text size</span><div class="chips" id="setText"></div></div>
       <div class="row"><span class="lbl">Finished notes</span><div class="chips" id="setDone"></div></div>
       <div>
-        <label class="lbl" for="setCats">Categories, one per line</label>
+        <label class="lbl" for="setCats" id="catsLabel">Categories, one per line</label>
         <textarea id="setCats" spellcheck="false"></textarea>
-        <p class="muted">These become the tap-chips on each highlight and the sections of your saved sheet. Private is always there and stays out of anything meant for the author. Change them per author if someone asks for something specific.</p>
         <button class="btn" type="button" id="catsReset">Restore defaults</button>
       </div>
     </div>
@@ -273,8 +282,19 @@ textarea{width:100%;min-height:9em;border:1px solid var(--line);border-radius:8p
 <div class="overlay" id="savePanel" hidden>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="svTitle">
     <header><h3 id="svTitle">Your sheet</h3>
-      <div class="grp"><button class="btn" type="button" id="svClose">Back to reading</button><button class="btn primary" type="button" id="svSave">Save file</button></div></header>
+      <div class="grp"><button class="btn" type="button" id="svClose">Back to reading</button><button class="btn" type="button" id="svJson" hidden>Save for Satzlupe</button><button class="btn primary" type="button" id="svSave">Save sheet</button></div></header>
     <iframe class="preview" id="svFrame" title="Sheet preview" sandbox=""></iframe>
+  </div>
+</div>
+
+<div class="overlay" id="welcome" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="wTitle">
+    <header><h3 id="wTitle">Randnotiz</h3></header>
+    <button class="btn primary" type="button" id="wContinue" hidden></button>
+    <div class="doors">
+      <button class="door" type="button" data-mode="critique"><b>Someone else&rsquo;s chapter</b><span>Critique</span></button>
+      <button class="door" type="button" data-mode="revise"><b>My own chapter</b><span>Revise</span></button>
+    </div>
   </div>
 </div>
 
@@ -288,14 +308,20 @@ textarea{width:100%;min-height:9em;border:1px solid var(--line);border-radius:8p
 const $=s=>document.querySelector(s);
 const DEFAULT_CATS=['Character','Plot','Pacing','Clarity','Prose','Dialogue','Setting','Love'];
 const OLD_CATS={A:'Character',Q:'Clarity',O:'Pacing',C:'Prose',L:'Love',P:'Private'};
-const COLORS=[{k:'g',name:'Works'},{k:'r',name:'Trips me'},{k:'y',name:'Noticed'}];
+const COLORS_CRIT=[{k:'g',name:'Works'},{k:'r',name:'Trips me'},{k:'y',name:'Noticed'}];
+const COLORS_REV=[{k:'p',name:'Protect'},{k:'w',name:'Needs work'}];
+const DEFAULT_REV=['Something missing','Wording','Logic','Clarity','Pacing','Too much'];
+const REV_INSTR='Revision notes on Sharon’s own chapter, made in Randnotiz. Gold = Protect: never change, trim or suggest alternatives for these passages. Dark red = Needs work; the kind says what she sensed (e.g. Something missing, Wording, Logic). Images are her handwritten notes (cursive italic, mostly English, sometimes German), each belonging to its passage. When asked to brainstorm: start with questions, offer options in her voice only where she asks for them, use the surrounding text for context, and do not line-edit anything she did not flag.';
+let COLORS=COLORS_CRIT, pendingMode='critique';
+const colName=k=>(COLORS_CRIT.concat(COLORS_REV).find(c=>c.k===k)||{name:''}).name;
+const isRev=()=>!!S&&S.mode==='revise';
 const NIB={f:.72,m:1,b:1.38}, NIB_PX=3.9;
 const GAP={s:48,n:60,w:74};
 const TEXT={s:'1.02rem',m:'1.14rem',l:'1.3rem'};
 const MARGIN=44;
 
 let S=null, DOC=null, sel=null, tool='pen';
-let prefs={nib:'m',angle:40,ink:'k',gap:'n',text:'m',hl:'g',split:.58,doneStyle:'faint',cats:DEFAULT_CATS.slice()};
+let prefs={nib:'m',angle:40,ink:'k',gap:'n',text:'m',hl:'g',hlRev:'w',split:.58,doneStyle:'faint',cats:DEFAULT_CATS.slice(),revCats:DEFAULT_REV.slice()};
 const hist={};
 
 /* ---------- storage: a backup on this device ---------- */
@@ -303,9 +329,10 @@ const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},se
 try{const p=JSON.parse(store.get('rn1:prefs')||'null');if(p)prefs=Object.assign(prefs,p)}catch(e){}
 if(!Array.isArray(prefs.cats)||!prefs.cats.length||prefs.cats.includes('A'))prefs.cats=DEFAULT_CATS.slice();
 if(typeof prefs.split!=='number')prefs.split=.58;
+if(!Array.isArray(prefs.revCats)||!prefs.revCats.length)prefs.revCats=DEFAULT_REV.slice();
 function savePrefs(){store.set('rn1:prefs',JSON.stringify(prefs))}
 function hash(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)}
-function sessionKey(s){const first=(s.paras||[]).slice(0,4).map(p=>p.runs.map(r=>r.t).join('')).join('|').slice(0,240);return 'rn1:s:'+hash((s.docTitle||'')+'|'+(s.chapterTitle||'')+'|'+first)}
+function sessionKey(s){const first=(s.paras||[]).slice(0,4).map(p=>p.runs.map(r=>r.t).join('')).join('|').slice(0,240);return 'rn1:s:'+hash((s.docTitle||'')+'|'+(s.chapterTitle||'')+'|'+first+(s.mode==='revise'?'|rev':''))}
 let saveTimer=null,warnedFull=false;
 function autosave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{if(!S||S.sample)return;const k=sessionKey(S);
   if(store.set(k,JSON.stringify(S)))store.set('rn1:last',k);else if(!warnedFull){warnedFull=true;toast('The backup on this iPad is full. Use Save sheet before closing.')}},600)}
@@ -314,7 +341,7 @@ function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeou
 
 /* ---------- migration of older sessions ---------- */
 function migrate(s){
-  s.highlights=s.highlights||[];s.chapterNote=s.chapterNote||{strokes:[]};
+  s.highlights=s.highlights||[];s.chapterNote=s.chapterNote||{strokes:[]};s.mode=s.mode||'critique';
   if(!s.v||s.v<2){
     const conv=st=>{st.pts=st.pts.map(p=>[p[0]*500,p[1]*500])};
     s.highlights.forEach(h=>{h.strokes.forEach(conv);if(h.drawer&&OLD_CATS[h.drawer])h.drawer=OLD_CATS[h.drawer]});
@@ -371,8 +398,8 @@ function renderReader(){
     box.appendChild(el);
   });
   if(S._marks){S._marks.forEach((m,n)=>S.highlights.push({id:'s'+n,start:paraStart[m.p]+m.from,end:paraStart[m.p]+m.to,color:m.c,drawer:m.d,strokes:[],created:Date.now()}));delete S._marks}
-  $('#sampleBanner').hidden=!S.sample;
-  $('#docLabel').textContent=S.sample?'Sample: '+S.docTitle+', '+S.chapterTitle:(S.docTitle?S.docTitle+' · ':'')+(S.chapterTitle||'');
+  $('#sampleBanner').hidden=!S.sample;$('#text').classList.toggle('rev',S.mode==='revise');
+  $('#docLabel').textContent=S.sample?'Sample: '+S.docTitle+', '+S.chapterTitle:(S.mode==='revise'?'Revising · ':'')+(S.docTitle?S.docTitle+' · ':'')+(S.chapterTitle||'');
   paint();
 }
 let painted=[];
@@ -391,7 +418,7 @@ function wordAt(x,y){for(const dx of [0,-12,-24,-40,-60,-90,-130,-180,-240,-320,
 function stylusGuard(el){const f=e=>{for(const t of e.touches){if(t.touchType==='stylus'){e.preventDefault();return}}};el.addEventListener('touchstart',f,{passive:false});el.addEventListener('touchmove',f,{passive:false})}
 stylusGuard(reader);
 let drag=null,tap=null,scrollRAF=null;
-const tempH=()=>({id:'tmp',start:Math.min(drag.a,drag.b),end:Math.max(drag.a,drag.b),color:prefs.hl});
+const tempH=()=>({id:'tmp',start:Math.min(drag.a,drag.b),end:Math.max(drag.a,drag.b),color:isRev()?prefs.hlRev:prefs.hl});
 reader.addEventListener('pointerdown',e=>{
   if(e.target.closest('.banner'))return;
   if(e.pointerType==='touch'){tap={id:e.pointerId,x:e.clientX,y:e.clientY,t:Date.now()};return}
@@ -412,7 +439,7 @@ function endDrag(e,cancel){
   if(!drag||e.pointerId!==drag.id)return;const d=drag;drag=null;
   if(cancel){paint();return}
   if(d.moved&&d.a!=null&&d.b!=null){
-    const h={id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),start:Math.min(d.a,d.b),end:Math.max(d.a,d.b),color:prefs.hl,drawer:null,strokes:[],created:Date.now()};
+    const h={id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),start:Math.min(d.a,d.b),end:Math.max(d.a,d.b),color:isRev()?prefs.hlRev:prefs.hl,drawer:null,strokes:[],created:Date.now()};
     S.highlights.push(h);select(h.id);autosave();
   }else{const i=wordAt(d.sx,d.sy);const h=i==null?null:topAt(i);select(h?h.id:null)}
 }
@@ -441,11 +468,17 @@ function buildSwatches(box,onPick,getVal){
     b.addEventListener('click',()=>{onPick(c.k);box.querySelectorAll('.sw').forEach(x=>x.setAttribute('aria-checked',String(x.dataset.k===getVal())))});box.appendChild(b)});
   box.querySelectorAll('.sw').forEach(x=>x.setAttribute('aria-checked',String(x.dataset.k===getVal())));
 }
-buildSwatches($('#penColors'),k=>{prefs.hl=k;savePrefs()},()=>prefs.hl);
-buildSwatches($('#hlColors'),k=>{const h=current();if(h){h.color=k;paint();autosave()}},()=>current()?current().color:'');
-function allCats(){return prefs.cats.filter(c=>c!=='Private').concat(['Private'])}
+function rebuildSwatches(){
+  COLORS=isRev()?COLORS_REV:COLORS_CRIT;
+  const pc=$('#penColors');pc.querySelectorAll('.sw').forEach(b=>b.remove());
+  const hc=$('#hlColors');hc.textContent='';
+  buildSwatches(pc,k=>{if(isRev())prefs.hlRev=k;else prefs.hl=k;savePrefs()},()=>isRev()?prefs.hlRev:prefs.hl);
+  buildSwatches(hc,k=>{const h=current();if(h){h.color=k;paint();renderCats();autosave()}},()=>current()?current().color:'');
+}
+function allCats(){return isRev()?prefs.revCats.slice():prefs.cats.filter(c=>c!=='Private').concat(['Private'])}
 function renderCats(){
   const box=$('#catChips');box.textContent='';const h=current();if(!h)return;
+  if(isRev()&&h.color==='p'){box.hidden=true;return}box.hidden=false;
   const list=allCats();if(h.drawer&&!list.includes(h.drawer))list.splice(list.length-1,0,h.drawer);
   list.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='chip'+(c==='Private'?' private':'');
     b.textContent=(c==='Love'?'♥ ':'')+c;b.setAttribute('aria-pressed',String(h.drawer===c));
@@ -584,6 +617,13 @@ function inkImage(strokes){
 
 /* ---------- grouping ---------- */
 function groups(){
+  if(isRev()){
+    const order=prefs.revCats.slice(),work=S.highlights.filter(h=>h.color!=='p');
+    work.forEach(h=>{if(h.drawer&&!order.includes(h.drawer))order.push(h.drawer)});order.push(null);
+    const gs=order.map(k=>({k,name:k===null?'Needs work · kind not set':'Needs work · '+k,items:work.filter(h=>(h.drawer||null)===k).sort((a,b)=>a.start-b.start)}));
+    gs.push({k:'__protect',name:'Protected',items:S.highlights.filter(h=>h.color==='p').sort((a,b)=>a.start-b.start)});
+    return gs.filter(g=>g.items.length);
+  }
   const order=allCats().filter(c=>c!=='Private');
   S.highlights.forEach(h=>{if(h.drawer&&h.drawer!=='Private'&&!order.includes(h.drawer))order.push(h.drawer)});
   order.push(null,'Private');
@@ -607,7 +647,7 @@ function openOverview(){
   const cs=document.createElement('div');cs.className='ov-group';cs.innerHTML='<h4>Whole chapter</h4>';
   addItem(cs,S.chapterNote.strokes.length?'Overall impressions':'No chapter note yet',null,null,S.chapterNote.strokes,()=>{closeOv();select('chapter')});body.appendChild(cs);
   groups().forEach(g=>{const sec=document.createElement('div');sec.className='ov-group';const h4=document.createElement('h4');h4.textContent=g.name+' · '+g.items.length;sec.appendChild(h4);
-    g.items.forEach(h=>addItem(sec,'¶ '+(wordPara[h.start]+1)+' · '+COLORS.find(c=>c.k===h.color).name,h.color,quoteOf(h),h.strokes,()=>{closeOv();select(h.id);wordEls[h.start]&&wordEls[h.start].scrollIntoView({block:'center',behavior:'smooth'})}));
+    g.items.forEach(h=>addItem(sec,'¶ '+(wordPara[h.start]+1)+' · '+colName(h.color),h.color,quoteOf(h),h.strokes,()=>{closeOv();select(h.id);wordEls[h.start]&&wordEls[h.start].scrollIntoView({block:'center',behavior:'smooth'})}));
     body.appendChild(sec)});
   if(!S.highlights.length){const p=document.createElement('p');p.className='muted';p.textContent='No highlights yet. Drag the Pencil across a passage to make one.';body.appendChild(p)}
   $('#overview').hidden=false;
@@ -627,16 +667,21 @@ chipGroup($('#setDone'),[['faint','Dotted underline'],['hide','Hidden']],'doneSt
 const ang=$('#setAngle');ang.value=prefs.angle;$('#angleVal').textContent=prefs.angle+'°';
 ang.addEventListener('input',()=>{prefs.angle=+ang.value;$('#angleVal').textContent=ang.value+'°';savePrefs()});
 const catsBox=$('#setCats');
-function fillCats(){catsBox.value=prefs.cats.filter(c=>c!=='Private').join('\n')}
+function fillCats(){$('#catsLabel').textContent=isRev()?'Kinds of work, one per line':'Categories, one per line';catsBox.value=(isRev()?prefs.revCats:prefs.cats.filter(c=>c!=='Private')).join('\n')}
 catsBox.addEventListener('input',()=>{const list=[...new Set(catsBox.value.split('\n').map(s=>s.trim()).filter(s=>s&&s.toLowerCase()!=='private'))].slice(0,14);
-  prefs.cats=list.length?list:DEFAULT_CATS.slice();savePrefs();renderCats()});
-$('#catsReset').addEventListener('click',()=>{prefs.cats=DEFAULT_CATS.slice();fillCats();savePrefs();renderCats()});
+  if(isRev())prefs.revCats=list.length?list:DEFAULT_REV.slice();else prefs.cats=list.length?list:DEFAULT_CATS.slice();savePrefs();renderCats()});
+$('#catsReset').addEventListener('click',()=>{if(isRev())prefs.revCats=DEFAULT_REV.slice();else prefs.cats=DEFAULT_CATS.slice();fillCats();savePrefs();renderCats()});
 $('#settingsBtn').addEventListener('click',()=>{fillCats();$('#settings').hidden=false});
 $('#setClose').addEventListener('click',()=>$('#settings').hidden=true);
-['#overview','#settings','#chapterPick','#savePanel'].forEach(id=>{const o=$(id);o.addEventListener('click',e=>{if(e.target===o)o.hidden=true})});
+['#overview','#settings','#chapterPick','#savePanel','#welcome'].forEach(id=>{const o=$(id);o.addEventListener('click',e=>{if(e.target===o)o.hidden=true})});
 
 /* ---------- opening files ---------- */
-$('#openBtn').addEventListener('click',()=>$('#fileIn').click());$('#bannerOpen').addEventListener('click',()=>$('#fileIn').click());
+function showWelcome(){const c=$('#wContinue');
+  if(S&&!S.sample){c.textContent='Continue: '+(S.mode==='revise'?'revising ':'')+(S.chapterTitle||'this chapter');c.hidden=false}else c.hidden=true;
+  $('#welcome').hidden=false}
+$('#wContinue').addEventListener('click',()=>$('#welcome').hidden=true);
+document.querySelectorAll('.door').forEach(b=>b.addEventListener('click',()=>{pendingMode=b.dataset.mode;$('#welcome').hidden=true;$('#fileIn').click()}));
+$('#openBtn').addEventListener('click',showWelcome);$('#bannerOpen').addEventListener('click',showWelcome);
 $('#fileIn').addEventListener('change',async e=>{
   const f=e.target.files[0];e.target.value='';if(!f)return;const name=f.name.replace(/\.[^.]+$/,'');
   try{
@@ -696,10 +741,10 @@ function loadDoc(name,paras){
 $('#cpClose').addEventListener('click',()=>$('#chapterPick').hidden=true);
 $('#chapterSel').addEventListener('change',e=>openChapter(+e.target.value));
 function openChapter(i){const c=DOC.chapters[i];$('#chapterSel').value=i;
-  const fresh={v:2,sample:false,docTitle:DOC.title,chapterTitle:c.title,paras:c.paras,highlights:[],chapterNote:{strokes:[]}};
+  const fresh={v:2,sample:false,mode:pendingMode,docTitle:DOC.title,chapterTitle:c.title,paras:c.paras,highlights:[],chapterNote:{strokes:[]}};
   const saved=store.get(sessionKey(fresh));if(saved){try{startSession(JSON.parse(saved));toast('Picked up your notes on '+c.title+'.');return}catch(e){}}
   startSession(fresh)}
-function startSession(s){S=migrate(s);sel=null;Object.keys(hist).forEach(k=>delete hist[k]);renderReader();reader.scrollTop=0;renderHead();layoutPad(true);if(!S.sample)store.set('rn1:last',sessionKey(S))}
+function startSession(s){S=migrate(s);sel=null;rebuildSwatches();Object.keys(hist).forEach(k=>delete hist[k]);renderReader();reader.scrollTop=0;renderHead();layoutPad(true);if(!S.sample)store.set('rn1:last',sessionKey(S))}
 
 /* ---------- the saved sheet ---------- */
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
@@ -707,19 +752,19 @@ function slug(s){return String(s||'').toLowerCase().normalize('NFKD').replace(/[
 function imgTag(im,alt){return im?'<img src="'+im.src+'" alt="'+alt+'" style="width:'+Math.min(im.w,780)+'px">':''}
 function buildSheet(){
   const date=new Date().toISOString().slice(0,10),items=[];
-  let body='<header><p class="eyebrow">Randnotiz · reading notes · '+date+'</p><h1>'+esc(S.docTitle||'')+'</h1><p class="sub">'+esc(S.chapterTitle||'')+' · '+S.highlights.length+' highlights</p></header>';
+  let body='<header><p class="eyebrow">Randnotiz · '+(isRev()?'revision notes':'reading notes')+' · '+date+'</p><h1>'+esc(S.docTitle||'')+'</h1><p class="sub">'+esc(S.chapterTitle||'')+' · '+S.highlights.length+' highlights</p></header>';
   const cimg=inkImage(S.chapterNote.strokes);
   body+='<section><h2>Whole chapter</h2>'+(cimg?'<div class="ink">'+imgTag(cimg,'Handwritten chapter note')+'</div>':'<p class="none">No chapter note.</p>')+'</section>';
   groups().forEach(g=>{
     body+='<section'+(g.k==='Private'?' class="private"':'')+'><h2>'+esc(g.name)+(g.k==='Private'?' <span>for you, not the author</span>':'')+'</h2>';
-    g.items.forEach(h=>{const im=inkImage(h.strokes),q=quoteOf(h),col=COLORS.find(c=>c.k===h.color).name;
+    g.items.forEach(h=>{const im=inkImage(h.strokes),q=quoteOf(h),col=colName(h.color);
       body+='<article class="'+h.color+'"><p class="meta">¶ '+(wordPara[h.start]+1)+' · '+esc(col)+'</p><blockquote>'+esc(q)+'</blockquote>'+(im?imgTag(im,'Handwritten note'):'<p class="none">No handwritten note.</p>')+'</article>';
       items.push({paragraph:wordPara[h.start]+1,quote:q,colour:col,category:h.drawer||null,hasHandwriting:!!im})});
     body+='</section>';
   });
-  const session=Object.assign({},S,{instructionsForClaude:'Beta-reading notes made in Randnotiz. Each image is a handwritten note (cursive italic, mostly English, sometimes German) placed under the passage it belongs to. Colours: Works = liked, Trips me = something snagged, Noticed = neutral. Categories are the reader’s own sorting. When asked: transcribe each note next to its quote, turn gut reactions into author-facing comments in her voice without adding opinions she did not write, and leave everything under Private out of anything meant for the author.',summary:items});
+  const session=Object.assign({},S,{instructionsForClaude:isRev()?REV_INSTR:'Beta-reading notes made in Randnotiz. Each image is a handwritten note (cursive italic, mostly English, sometimes German) placed under the passage it belongs to. Colours: Works = liked, Trips me = something snagged, Noticed = neutral. Categories are the reader’s own sorting. When asked: transcribe each note next to its quote, turn gut reactions into author-facing comments in her voice without adding opinions she did not write, and leave everything under Private out of anything meant for the author.',summary:items});
   const json=JSON.stringify(session).replace(/</g,'\\u003c');
-  const style='body{margin:0;background:#F4F5F2;color:#1D2230;font:16px/1.55 Georgia,"Times New Roman",serif}main{max-width:840px;margin:0 auto;padding:32px 20px 64px}.eyebrow{font:12px/1.4 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#677083;margin:0}h1{font-size:30px;margin:6px 0 2px;font-style:italic}.sub{margin:0;color:#677083;font-family:system-ui,sans-serif}h2{font:600 13px/1.4 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#677083;margin:34px 0 12px;border-bottom:1px solid #D3D7DF;padding-bottom:6px}h2 span{color:#D04545;text-transform:none;letter-spacing:0;font-weight:500}article,.ink{background:#fff;border:1px solid #D3D7DF;border-radius:8px;padding:12px 14px;margin-bottom:12px}article{border-left:5px solid #ccc}article.g{border-left-color:#3E9A4B}article.r{border-left-color:#D04545}article.y{border-left-color:#C2950C}.meta{margin:0 0 4px;font:12px/1.4 system-ui,sans-serif;color:#677083}blockquote{margin:0 0 8px;font-style:italic}img{display:block;max-width:100%;height:auto}.none{color:#8a90a0;font-style:italic;margin:0}';
+  const style='body{margin:0;background:#F4F5F2;color:#1D2230;font:16px/1.55 Georgia,"Times New Roman",serif}main{max-width:840px;margin:0 auto;padding:32px 20px 64px}.eyebrow{font:12px/1.4 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#677083;margin:0}h1{font-size:30px;margin:6px 0 2px;font-style:italic}.sub{margin:0;color:#677083;font-family:system-ui,sans-serif}h2{font:600 13px/1.4 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#677083;margin:34px 0 12px;border-bottom:1px solid #D3D7DF;padding-bottom:6px}h2 span{color:#D04545;text-transform:none;letter-spacing:0;font-weight:500}article,.ink{background:#fff;border:1px solid #D3D7DF;border-radius:8px;padding:12px 14px;margin-bottom:12px}article{border-left:5px solid #ccc}article.g{border-left-color:#3E9A4B}article.r{border-left-color:#D04545}article.y{border-left-color:#C2950C}article.p{border-left-color:#B8890F}article.w{border-left-color:#8B1E2D}.meta{margin:0 0 4px;font:12px/1.4 system-ui,sans-serif;color:#677083}blockquote{margin:0 0 8px;font-style:italic}img{display:block;max-width:100%;height:auto}.none{color:#8a90a0;font-style:italic;margin:0}';
   return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc((S.chapterTitle||'Chapter')+' · '+(S.docTitle||'Randnotiz'))+'</title><style>'+style+'</style></head><body><main>'+body+'</main><script type="application/json" id="randnotiz-session">'+json+'<\/script></body></html>';
 }
 function sessionFromSheet(txt){const d=new DOMParser().parseFromString(txt,'text/html');const el=d.getElementById('randnotiz-session');if(!el)return null;
@@ -727,11 +772,22 @@ function sessionFromSheet(txt){const d=new DOMParser().parseFromString(txt,'text
 let dl;
 async function getDownloads(){if(dl!==undefined)return dl;try{dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null}catch(e){dl=null}return dl}
 let sheetHtml='';
-$('#saveBtn').addEventListener('click',()=>{if(!S)return;sheetHtml=buildSheet();$('#svFrame').srcdoc=sheetHtml;$('#savePanel').hidden=false});
+function ctxRange(a,b){a=Math.max(0,a);b=Math.min(wordTxt.length-1,b);return b<a?'':quoteOf({start:a,end:b})}
+function buildSatzlupe(){
+  const marks=S.highlights.slice().sort((x,y)=>x.start-y.start).map(h=>{const im=inkImage(h.strokes);return {
+    type:h.color==='p'?'protect':'needs-work',kind:h.color==='p'?null:(h.drawer||null),paragraph:wordPara[h.start]+1,
+    quote:quoteOf(h),contextBefore:ctxRange(h.start-40,h.start-1),contextAfter:ctxRange(h.end+1,h.end+40),done:!!h.done,handwriting:im?im.src:null}});
+  const cn=inkImage(S.chapterNote.strokes);
+  return JSON.stringify({format:'randnotiz-revision',version:1,document:S.docTitle,chapter:S.chapterTitle,exported:new Date().toISOString(),
+    instructionsForClaude:REV_INSTR,kinds:prefs.revCats,chapterNote:cn?cn.src:null,
+    paragraphs:S.paras.map(p=>p.runs.map(r=>r.em&&r.t.trim()?'*'+r.t+'*':r.t).join('')),marks},null,1);
+}
+$('#saveBtn').addEventListener('click',()=>{if(!S)return;$('#svJson').hidden=!isRev();sheetHtml=buildSheet();$('#svFrame').srcdoc=sheetHtml;$('#savePanel').hidden=false});
 $('#svClose').addEventListener('click',()=>$('#savePanel').hidden=true);
-$('#svSave').addEventListener('click',async()=>{
-  const name=slug(S.docTitle)+'_'+slug(S.chapterTitle)+'_randnotiz.html';
-  const file=new File([sheetHtml],name,{type:'text/html'});
+$('#svSave').addEventListener('click',()=>deliver(slug(S.docTitle)+'_'+slug(S.chapterTitle)+'_randnotiz.html',sheetHtml,'text/html'));
+$('#svJson').addEventListener('click',()=>deliver(slug(S.docTitle)+'_'+slug(S.chapterTitle)+'_satzlupe.json',buildSatzlupe(),'application/json'));
+async function deliver(name,content,type){
+  const file=new File([content],name,{type});
   // 1) inside claude.ai: the viewer's own save prompt
   const d=window.claude&&window.claude.use?await getDownloads():null;
   if(d){try{await d.save({filename:name,data:file});toast('Saved '+name+'.');$('#savePanel').hidden=true;return}
@@ -742,7 +798,7 @@ $('#svSave').addEventListener('click',async()=>{
   // 3) plain download
   const url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();
   setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},5000);toast('Downloading '+name+'. On iPad it lands in Files → Downloads.');$('#savePanel').hidden=true;
-});
+}
 
 /* ---------- theme ---------- */
 const mq=window.matchMedia('(prefers-color-scheme: dark)');const onTheme=()=>{if(S&&!cur)redraw()};
@@ -754,8 +810,8 @@ function start(data){
   applyText();applySplit();
   let s=data&&data.S;
   if(!s){const k=store.get('rn1:last');if(k){try{s=JSON.parse(store.get(k)||'null')}catch(e){s=null}}}
-  if(s){startSession(s);if(data&&data.sel)select(data.sel);else if(!(data&&data.S))toast('Welcome back. Your notes on '+(s.chapterTitle||'this chapter')+' are here.')}
-  else startSession(sampleSession());
+  if(s){startSession(s);if(data&&data.sel)select(data.sel);else if(!(data&&data.S))showWelcome()}
+  else{startSession(sampleSession());showWelcome()}
 }
 const hot=window.claude&&window.claude.hot;
 if(hot&&hot.snapshot)hot.snapshot(()=>({S,sel}));
