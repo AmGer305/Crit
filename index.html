@@ -718,6 +718,51 @@ function notesBody(date){
   return b;
 }
 
+/* ---------- letter notes: cards without a text ---------- */
+function catLabel(c){return c==='Loose thoughts'?'☁️ Loose thoughts':c==='Love'?'♥ Love':c}
+function curCard(){return S&&S.cards?S.cards.find(c=>c.id===S.open):null}
+function openFreshCard(render){
+  let c=S.cards.find(x=>!x.done&&!x.strokes.length);
+  if(!c){c={id:'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),drawer:null,strokes:[],created:Date.now(),done:false};S.cards.push(c)}
+  S.open=c.id;if(render){closeMenu();renderHead();layoutPad(true)}
+}
+function openCard(id){S.open=id;closeMenu();renderHead();layoutPad(true)}
+function notesGroups(){
+  const cards=S.cards.filter(c=>c.strokes.length),fixed=['Loose thoughts','Private'];
+  const order=prefs.cats.filter(c=>!fixed.includes(c));
+  cards.forEach(c=>{if(c.drawer&&!fixed.includes(c.drawer)&&!order.includes(c.drawer))order.push(c.drawer)});
+  order.push('Loose thoughts',null,'Private');
+  return order.map(k=>({k,name:k===null?'Not filed yet':catLabel(k),items:cards.filter(c=>(c.drawer||null)===k)})).filter(g=>g.items.length);
+}
+function renderShelf(){
+  const sh=$('#shelf');if(!isNotes()){sh.hidden=true;return}
+  sh.hidden=false;sh.textContent='';
+  const l=document.createElement('span');l.className='lbl';l.textContent='Filed';sh.appendChild(l);
+  const gs=notesGroups().map(g=>({g,n:g.items.filter(c=>c.done).length})).filter(x=>x.n);
+  if(!gs.length){const s=document.createElement('span');s.className='muted';s.style.margin='0';s.textContent='Nothing yet';sh.appendChild(s);return}
+  gs.forEach(({g,n})=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=g.name;
+    const c=document.createElement('b');c.textContent=n;b.appendChild(c);b.addEventListener('click',openOverview);sh.appendChild(b)});
+}
+function openNotesOverview(){
+  const body=$('#ovBody');body.textContent='';const gs=notesGroups();
+  if(!gs.length){const p=document.createElement('p');p.className='muted';p.textContent='Nothing filed yet. Write a thought, pick a drawer, tap Done.';body.appendChild(p)}
+  gs.forEach(g=>{const sec=document.createElement('div');sec.className='ov-group';const h4=document.createElement('h4');h4.textContent=g.name+' · '+g.items.length;sec.appendChild(h4);
+    g.items.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='ov-item';
+      const meta=document.createElement('span');meta.className='meta';meta.textContent='Card '+(S.cards.indexOf(c)+1);b.appendChild(meta);
+      const im=inkImage(c.strokes);if(im){const i=document.createElement('img');i.alt='Handwritten note';i.src=im.src;i.style.width=Math.min(im.w,700)+'px';b.appendChild(i)}
+      b.addEventListener('click',()=>{closeOv();openCard(c.id)});sec.appendChild(b)});
+    body.appendChild(sec)});
+  $('#overview').hidden=false;
+}
+function notesBody(date){
+  const gs=notesGroups(),total=gs.reduce((n,g)=>n+g.items.length,0);
+  let b='<header><p class="eyebrow">Randnotiz · letter notes · '+date+'</p><h1>'+esc(S.docTitle||'')+'</h1><p class="sub">'+total+' thoughts'+(gs.length?' · '+gs.map(g=>esc(g.name)+' '+g.items.length).join(' · '):'')+'</p></header>';
+  gs.forEach(g=>{b+='<section'+(g.k==='Private'?' class="private"':'')+'><h2>'+esc(g.name)+' · '+g.items.length+(g.k==='Private'?' <span>for you, not the author</span>':'')+'</h2>';
+    g.items.forEach(c=>{const im=inkImage(c.strokes);if(im)b+='<div class="ink">'+imgTag(im,'Handwritten note')+'</div>'});b+='</section>'});
+  if(!gs.length)b+='<p class="none">No thoughts filed yet.</p>';
+  return b;
+}
+
 /* ---------- overview ---------- */
 function openOverview(){
   if(isNotes()){openNotesOverview();return}
