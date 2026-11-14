@@ -120,6 +120,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--chip-on);color:var(--chip-on-ink);
   padding:10px 16px;border-radius:10px;box-shadow:var(--shadow);z-index:30;max-width:calc(100% - 32px)}
 @media (prefers-reduced-motion:reduce){.card,.h{transition:none}}
+.zoom{position:fixed;inset:0;z-index:40;background:rgba(10,12,20,.55);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));cursor:zoom-out}
+.zoom-in{background:var(--page);border:1px solid var(--line);border-radius:14px;padding:22px 26px;max-width:100%;max-height:100%;overflow:auto;display:grid;gap:10px;justify-items:center;box-shadow:var(--shadow)}
 /* letter view */
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
 .seg button{border:0;background:var(--page);padding:6px 14px;min-height:34px}
@@ -197,6 +199,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 </div>
 
 <div class="drop" id="drop" hidden>Drop your Randnotiz sheet</div>
+<div class="zoom" id="zoom" hidden><div class="zoom-in" role="dialog" aria-modal="true" aria-label="Enlarged note"><div id="zoomInk"></div><p class="hint-keys">Click anywhere or press Esc to close</p></div></div>
 <div class="toast" id="toast" role="status" hidden></div>
 <input type="file" id="fileIn" accept=".html,.htm" hidden>
 
@@ -249,9 +252,9 @@ function samplesOf(pts){
     for(let k=1;k<=n;k++){const t=k/n,u=1-t;out.push([u*u*s[0]+2*u*t*c[0]+t*t*m[0],u*u*s[1]+2*u*t*c[1]+t*t*m[1]])}}
   lin(out[out.length-1],pts[pts.length-1]);return out;
 }
-function drawStroke(c,st,color,ox,oy){
-  const pts=st.pts.map(p=>[p[0]-ox,p[1]-oy]);
-  const w=NIB_PX*(st.nib||1),th=(st.ang||40)*Math.PI/180,hx=Math.cos(th)*w/2,hy=-Math.sin(th)*w/2;
+function drawStroke(c,st,color,ox,oy,sc){
+  sc=sc||1;const pts=st.pts.map(p=>[p[0]-ox,p[1]-oy]);
+  const w=NIB_PX*(st.nib||1)*(sc<1?1/Math.pow(sc,.35):1),th=(st.ang||40)*Math.PI/180,hx=Math.cos(th)*w/2,hy=-Math.sin(th)*w/2;
   c.fillStyle=color;c.strokeStyle=color;const s=samplesOf(pts),n=s.length;
   if(n===1){c.beginPath();c.moveTo(s[0][0]+hx,s[0][1]+hy);c.lineTo(s[0][0]-hx,s[0][1]-hy);c.lineWidth=Math.max(1.2,w*.45);c.lineCap='round';c.stroke();return}
   const tp=i=>{const e=Math.min(i,n-1-i);return e>=5?1:.62+.38*e/5};
@@ -260,18 +263,19 @@ function drawStroke(c,st,color,ox,oy){
     const A1=[a[0]+hx*ta,a[1]+hy*ta],A2=[a[0]-hx*ta,a[1]-hy*ta],B1=[b[0]+hx*tb,b[1]+hy*tb],B2=[b[0]-hx*tb,b[1]-hy*tb];
     const area=(B1[0]-A1[0])*(A2[1]-A1[1])-(B1[1]-A1[1])*(A2[0]-A1[0]);const q=area<0?[A1,A2,B2,B1]:[A1,B1,B2,A2];
     c.moveTo(q[0][0],q[0][1]);c.lineTo(q[1][0],q[1][1]);c.lineTo(q[2][0],q[2][1]);c.lineTo(q[3][0],q[3][1]);c.closePath()}
-  c.fill('nonzero');c.lineWidth=Math.max(.9,w*.17);c.lineCap='round';c.lineJoin='round';
+  c.fill('nonzero');c.lineWidth=Math.max(1.15/sc,w*.17);c.lineCap='round';c.lineJoin='round';
   c.beginPath();c.moveTo(s[0][0],s[0][1]);for(let i=1;i<n;i++)c.lineTo(s[i][0],s[i][1]);c.stroke();
 }
-function inkCanvas(strokes,maxW){
+function inkCanvas(strokes,maxW,maxScale){
+  maxScale=maxScale||1;
   let x0=Infinity,y0=Infinity,x1=0,y1=0;
   strokes.forEach(s=>s.pts.forEach(p=>{x0=Math.min(x0,p[0]);y0=Math.min(y0,p[1]);x1=Math.max(x1,p[0]);y1=Math.max(y1,p[1])}));
-  const pad=8,ox=x0-pad,oy=y0-pad,w=x1-x0+pad*2,h=y1-y0+pad*2,sc=Math.min(1,maxW/w),dpr=Math.min(window.devicePixelRatio||1,2.5);
+  const pad=8,ox=x0-pad,oy=y0-pad,w=x1-x0+pad*2,h=y1-y0+pad*2,sc=Math.min(maxScale,maxW/w),dpr=Math.min(window.devicePixelRatio||1,2.5);
   const cv=document.createElement('canvas');cv.width=Math.ceil(w*sc*dpr);cv.height=Math.ceil(h*sc*dpr);cv.style.width=Math.round(w*sc)+'px';cv.style.height=Math.round(h*sc)+'px';
   cv.setAttribute('role','img');cv.setAttribute('aria-label','Handwritten note');
   const x=cv.getContext('2d');x.setTransform(dpr*sc,0,0,dpr*sc,0,0);
-  strokes.forEach(st=>drawStroke(x,st,css(st.ink==='b'?'--ink-b':'--ink-k'),ox,oy));
-  cv._strokes=strokes;cv._maxW=maxW;return cv;
+  strokes.forEach(st=>drawStroke(x,st,css(st.ink==='b'?'--ink-b':'--ink-k'),ox,oy,sc));
+  cv._strokes=strokes;cv._maxW=maxW;cv._maxScale=maxScale;cv.title='Click to enlarge';cv.style.cursor='zoom-in';return cv;
 }
 
 /* ---------- text ---------- */
@@ -445,6 +449,7 @@ function renderLetter(){
   if(!L)return;
   $('#lOpen').value=L.open;$('#lClose').value=L.close;
   const notes=notesList(),byId=new Map(notes.map(n=>[n.id,n])),box=$('#lSections');box.textContent='';
+  const itemW=Math.max(320,(box.clientWidth||660)-60);
   L.sections.forEach((sec,si)=>{
     const s=el('section','lsec');s.dataset.si=si;
     const head=el('div','lsec-head');head.appendChild(el('span','num',(ROMAN[si]||si+1)+'.'));
@@ -462,7 +467,7 @@ function renderLetter(){
       const u=el('button','mini','↑');u.type='button';u.title='Move up';u.disabled=ii===0;u.addEventListener('click',()=>{sec.items.splice(ii-1,0,sec.items.splice(ii,1)[0]);saveLetter();renderLetter()});top.appendChild(u);
       const d=el('button','mini','↓');d.type='button';d.title='Move down';d.disabled=ii===sec.items.length-1;d.addEventListener('click',()=>{sec.items.splice(ii+1,0,sec.items.splice(ii,1)[0]);saveLetter();renderLetter()});top.appendChild(d);
       const x=el('button','mini','✕');x.type='button';x.title='Back to the tray';x.addEventListener('click',()=>unplace(si,ii));top.appendChild(x);row.appendChild(top);
-      if(n){row.appendChild(el('p','orig',n.label+(n.cats.length?' · '+n.cats.map(catLabel).join(', '):'')));if(n.strokes.length)row.appendChild(inkCanvas(n.strokes,420))}
+      if(n){row.appendChild(el('p','orig',n.label+(n.cats.length?' · '+n.cats.map(catLabel).join(', '):'')));if(n.strokes.length)row.appendChild(inkCanvas(n.strokes,itemW))}
       const ta=document.createElement('textarea');ta.className='free';ta.rows=2;ta.placeholder='Your reaction…';ta.value=it.text;ta.setAttribute('aria-label','Reaction');ta.addEventListener('input',()=>{it.text=ta.value;saveLetter()});row.appendChild(ta);
       items.appendChild(row)});
     s.appendChild(items);
@@ -492,7 +497,7 @@ function renderTray(notes){
 $('#lOpen').addEventListener('input',e=>{L.open=e.target.value;saveLetter()});
 $('#lClose').addEventListener('input',e=>{L.close=e.target.value;saveLetter()});
 $('#lAddSec').addEventListener('click',()=>{L.sections.push({title:'New section',intro:'',items:[]});saveLetter();renderLetter();const ins=$('#lSections').querySelectorAll('.lsec-head input');const last=ins[ins.length-1];last.focus();last.select()});
-function setView(v){
+function setView(v){if(v==='letter'&&view!=='letter'){$('#letterView').hidden=false;renderLetter()}
   view=v;$('#vNotes').setAttribute('aria-pressed',String(v==='notes'));$('#vLetter').setAttribute('aria-pressed',String(v==='letter'));
   $('#desk').hidden=v!=='notes';$('#letterView').hidden=v!=='letter';$('#filters').hidden=v!=='notes';$('#keysHint').hidden=v!=='notes';$('#copyLetter').hidden=v!=='letter';
   store.set('rnd:view',v);if(v==='notes')requestAnimationFrame(layout);
@@ -522,6 +527,12 @@ $('#copyLetter').addEventListener('click',async()=>{
   catch(e){try{await navigator.clipboard.writeText(txt);toast('Letter copied as plain text.')}catch(_){toast('Copying was blocked here. Select the text in the letter and copy it by hand.')}}
 });
 
+/* ---------- enlarge a note ---------- */
+function openZoom(strokes){const z=$('#zoomInk');z.textContent='';z.appendChild(inkCanvas(strokes,Math.min(window.innerWidth*.88,1500),1.8));z.firstChild.style.cursor='zoom-out';$('#zoom').hidden=false}
+document.addEventListener('click',e=>{const cv=e.target.closest('canvas');if(cv&&cv._strokes&&!cv.closest('#zoom')){e.stopPropagation();openZoom(cv._strokes)}},true);
+$('#zoom').addEventListener('click',()=>$('#zoom').hidden=true);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#zoom').hidden=true});
+
 /* ---------- load ---------- */
 function load(s){
   S=migrate(s);active=null;filter=null;
@@ -537,7 +548,7 @@ function load(s){
 }
 window.addEventListener('resize',()=>layout());
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>layout());
-const reInk=()=>{document.querySelectorAll('canvas').forEach(cv=>{if(!cv._strokes)return;const n=inkCanvas(cv._strokes,cv._maxW);cv.replaceWith(n)});layout()};
+const reInk=()=>{document.querySelectorAll('canvas').forEach(cv=>{if(!cv._strokes)return;const n=inkCanvas(cv._strokes,cv._maxW,cv._maxScale);cv.replaceWith(n)});layout()};
 const mq=window.matchMedia('(prefers-color-scheme: dark)');mq.addEventListener&&mq.addEventListener('change',reInk);
 new MutationObserver(reInk).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
