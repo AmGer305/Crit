@@ -53,6 +53,8 @@
   color-scheme:dark;
 }
 [hidden]{display:none!important}
+#saveBtn.dirty::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent-ink);display:inline-block;margin-left:2px}
+.btn.danger-note{background:var(--dot-r);border-color:var(--dot-r);color:#fff;font-weight:600}
 html,body{height:100%}
 body{background:var(--paper);color:var(--ink);font-family:var(--f-ui);font-size:14px;overflow:hidden;-webkit-text-size-adjust:100%}
 button,select,input,textarea{font:inherit;color:inherit}
@@ -205,6 +207,7 @@ textarea{width:100%;min-height:9em;border:1px solid var(--line);border-radius:8p
     <div class="grp">
       <button class="btn" id="overviewBtn" type="button">Overview</button>
       <button class="btn" id="settingsBtn" type="button">Settings</button>
+      <button class="btn danger-note" id="backupAlert" type="button" hidden>Backup failed &middot; save your sheet now</button>
       <button class="btn primary" id="saveBtn" type="button">Save sheet</button>
     </div>
   </header>
@@ -306,6 +309,7 @@ textarea{width:100%;min-height:9em;border:1px solid var(--line);border-radius:8p
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="wTitle">
     <header><h3 id="wTitle">Randnotiz</h3></header>
     <button class="btn primary" type="button" id="wContinue" hidden></button>
+    <div id="wOthers"></div>
     <div class="doors">
       <button class="door" type="button" data-mode="critique"><b>Someone else&rsquo;s chapter</b><span>Critique</span></button>
       <button class="door" type="button" data-mode="revise"><b>My own chapter</b><span>Revise</span></button>
@@ -360,9 +364,38 @@ if(!Array.isArray(prefs.revCats)||!prefs.revCats.length)prefs.revCats=DEFAULT_RE
 function savePrefs(){store.set('rn1:prefs',JSON.stringify(prefs))}
 function hash(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)}
 function sessionKey(s){const first=(s.paras||[]).slice(0,4).map(p=>p.runs.map(r=>r.t).join('')).join('|').slice(0,240);return 'rn1:s:'+hash((s.docTitle||'')+'|'+(s.chapterTitle||'')+'|'+first+(s.mode==='revise'?'|rev':s.mode==='notes'?'|notes':''))}
-let saveTimer=null,warnedFull=false;
-function autosave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{if(!S||S.sample)return;const k=sessionKey(S);
-  if(store.set(k,JSON.stringify(S)))store.set('rn1:last',k);else if(!warnedFull){warnedFull=true;toast('The backup on this iPad is full. Use Save sheet before closing.')}},600)}
+/* backups live in IndexedDB (far more room than localStorage); localStorage is the fallback */
+const vault=(()=>{let dbp=null;
+  const db=()=>dbp||(dbp=new Promise((res,rej)=>{try{const r=indexedDB.open('randnotiz',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}));
+  const tx=(mode,fn)=>db().then(d=>new Promise((res,rej)=>{const t=d.transaction('kv',mode),q=fn(t.objectStore('kv'));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)}));
+  const lsKeys=()=>{try{return Object.keys(localStorage).filter(k=>k.startsWith('rn1:s:'))}catch(e){return []}};
+  return {
+    get:k=>tx('readonly',s=>s.get(k)).catch(()=>store.get(k)),
+    set:(k,v)=>tx('readwrite',s=>s.put(v,k)).catch(()=>{if(!store.set(k,v))throw new Error('full')}),
+    del:k=>tx('readwrite',s=>s.delete(k)).catch(()=>{try{localStorage.removeItem(k)}catch(e){}}),
+    keys:()=>tx('readonly',s=>s.getAllKeys()).then(a=>a.filter(k=>String(k).startsWith('rn1:s:'))).catch(()=>lsKeys()),
+    async migrate(){for(const k of lsKeys()){try{const v=localStorage.getItem(k);await tx('readwrite',s=>s.put(v,k));localStorage.removeItem(k)}catch(e){return}}}
+  };
+})();
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+function hasContent(s){return !!s&&((s.highlights||[]).length||((s.chapterNote||{}).strokes||[]).length||(s.cards||[]).some(c=>c.strokes&&c.strokes.length))}
+function isSaved(s){return !!s.savedAt&&(s.savedAt>=(s.changedAt||0))}
+function updateSaveBtn(){const b=$('#saveBtn');const dirty=!!S&&!S.sample&&hasContent(S)&&!isSaved(S);b.classList.toggle('dirty',dirty);b.title=dirty?'Notes not saved as a sheet yet':'Everything saved'}
+let saveTimer=null;
+function autosave(){if(S&&!S.sample){S.changedAt=Date.now();updateSaveBtn()}clearTimeout(saveTimer);saveTimer=setTimeout(persist,600)}
+function persist(){saveTimer=null;if(!S||S.sample)return Promise.resolve();const k=sessionKey(S),json=JSON.stringify(S);
+  return vault.set(k,json).then(()=>{store.set('rn1:last',k);$('#backupAlert').hidden=true;cleanVault(k)}).catch(()=>{$('#backupAlert').hidden=false})}
+function flush(){if(saveTimer){clearTimeout(saveTimer);return persist()}return Promise.resolve()}
+async function cleanVault(keep){
+  for(const k of await vault.keys()){if(k===keep)continue;let s=null;try{s=JSON.parse(await vault.get(k)||'null')}catch(e){}
+    if(!s||!hasContent(s)||(s.changedAt&&isSaved(s))||sessionKey(s)===keep)await vault.del(k)}
+}
+async function otherUnsaved(){
+  const out=[],cur=S&&!S.sample?sessionKey(S):null;
+  for(const k of await vault.keys()){if(k===cur)continue;let s=null;try{s=JSON.parse(await vault.get(k)||'null')}catch(e){}
+    if(s&&hasContent(s)&&!isSaved(s)&&sessionKey(s)!==cur)out.push({k,s})}
+  return out.sort((a,b)=>(b.s.changedAt||0)-(a.s.changedAt||0));
+}
 let toastT=null;
 function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,4200)}
 
@@ -560,7 +593,7 @@ function bounds(strokes){let x=0,y=0;strokes.forEach(s=>s.pts.forEach(p=>{if(p[0
 function layoutPad(resetScroll){
   const tg=target(),b=bounds(tg?tg.strokes:[]);
   W=Math.max(200,sheet.clientWidth,Math.ceil(b.x+24));dpr=Math.min(window.devicePixelRatio||1,2.5);
-  const g=gap(),need=Math.max(sheet.clientHeight,b.y+g*5);H=Math.ceil(need/g)*g;
+  const g=gap(),need=Math.max(sheet.clientHeight,b.y+Math.max(g*5,sheet.clientHeight));H=Math.ceil(need/g)*g;
   cv.style.width=W+'px';cv.style.height=H+'px';cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);rail.style.height=H+'px';
   redraw();if(resetScroll){sheet.scrollTop=0;sheet.scrollLeft=0}
   $('#hint').textContent=tg&&isNotes()?'One thought per card. Write it, pick a drawer, tap Done.':tg?'Write here with your Pencil. Scroll with a finger in the red margin.':'Done. Drag the Pencil across the next passage, or tap a highlight to reopen it.';
@@ -624,7 +657,7 @@ function endStroke(e){
   const st=cur.st;cur=null;base=null;st.pts=st.pts.map(q=>[Math.round(q[0]*10)/10,Math.round(q[1]*10)/10]);
   target().strokes.push(st);pushHist({t:'add',s:st});
   const before=sheet.scrollTop,g=gap(),bottom=Math.max(...st.pts.map(q=>q[1]));
-  if(bottom>H-g*4){layoutPad(false);sheet.scrollTop=before}else redraw();
+  if(bottom>H-Math.max(g*4,sheet.clientHeight*.8)){layoutPad(false);sheet.scrollTop=before}else redraw();
   autosave();
 }
 sheet.addEventListener('pointerup',endStroke);sheet.addEventListener('pointercancel',endStroke);
@@ -718,51 +751,6 @@ function notesBody(date){
   return b;
 }
 
-/* ---------- letter notes: cards without a text ---------- */
-function catLabel(c){return c==='Loose thoughts'?'☁️ Loose thoughts':c==='Love'?'♥ Love':c}
-function curCard(){return S&&S.cards?S.cards.find(c=>c.id===S.open):null}
-function openFreshCard(render){
-  let c=S.cards.find(x=>!x.done&&!x.strokes.length);
-  if(!c){c={id:'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),drawer:null,strokes:[],created:Date.now(),done:false};S.cards.push(c)}
-  S.open=c.id;if(render){closeMenu();renderHead();layoutPad(true)}
-}
-function openCard(id){S.open=id;closeMenu();renderHead();layoutPad(true)}
-function notesGroups(){
-  const cards=S.cards.filter(c=>c.strokes.length),fixed=['Loose thoughts','Private'];
-  const order=prefs.cats.filter(c=>!fixed.includes(c));
-  cards.forEach(c=>{if(c.drawer&&!fixed.includes(c.drawer)&&!order.includes(c.drawer))order.push(c.drawer)});
-  order.push('Loose thoughts',null,'Private');
-  return order.map(k=>({k,name:k===null?'Not filed yet':catLabel(k),items:cards.filter(c=>(c.drawer||null)===k)})).filter(g=>g.items.length);
-}
-function renderShelf(){
-  const sh=$('#shelf');if(!isNotes()){sh.hidden=true;return}
-  sh.hidden=false;sh.textContent='';
-  const l=document.createElement('span');l.className='lbl';l.textContent='Filed';sh.appendChild(l);
-  const gs=notesGroups().map(g=>({g,n:g.items.filter(c=>c.done).length})).filter(x=>x.n);
-  if(!gs.length){const s=document.createElement('span');s.className='muted';s.style.margin='0';s.textContent='Nothing yet';sh.appendChild(s);return}
-  gs.forEach(({g,n})=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=g.name;
-    const c=document.createElement('b');c.textContent=n;b.appendChild(c);b.addEventListener('click',openOverview);sh.appendChild(b)});
-}
-function openNotesOverview(){
-  const body=$('#ovBody');body.textContent='';const gs=notesGroups();
-  if(!gs.length){const p=document.createElement('p');p.className='muted';p.textContent='Nothing filed yet. Write a thought, pick a drawer, tap Done.';body.appendChild(p)}
-  gs.forEach(g=>{const sec=document.createElement('div');sec.className='ov-group';const h4=document.createElement('h4');h4.textContent=g.name+' · '+g.items.length;sec.appendChild(h4);
-    g.items.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='ov-item';
-      const meta=document.createElement('span');meta.className='meta';meta.textContent='Card '+(S.cards.indexOf(c)+1);b.appendChild(meta);
-      const im=inkImage(c.strokes);if(im){const i=document.createElement('img');i.alt='Handwritten note';i.src=im.src;i.style.width=Math.min(im.w,700)+'px';b.appendChild(i)}
-      b.addEventListener('click',()=>{closeOv();openCard(c.id)});sec.appendChild(b)});
-    body.appendChild(sec)});
-  $('#overview').hidden=false;
-}
-function notesBody(date){
-  const gs=notesGroups(),total=gs.reduce((n,g)=>n+g.items.length,0);
-  let b='<header><p class="eyebrow">Randnotiz · letter notes · '+date+'</p><h1>'+esc(S.docTitle||'')+'</h1><p class="sub">'+total+' thoughts'+(gs.length?' · '+gs.map(g=>esc(g.name)+' '+g.items.length).join(' · '):'')+'</p></header>';
-  gs.forEach(g=>{b+='<section'+(g.k==='Private'?' class="private"':'')+'><h2>'+esc(g.name)+' · '+g.items.length+(g.k==='Private'?' <span>for you, not the author</span>':'')+'</h2>';
-    g.items.forEach(c=>{const im=inkImage(c.strokes);if(im)b+='<div class="ink">'+imgTag(im,'Handwritten note')+'</div>'});b+='</section>'});
-  if(!gs.length)b+='<p class="none">No thoughts filed yet.</p>';
-  return b;
-}
-
 /* ---------- overview ---------- */
 function openOverview(){
   if(isNotes()){openNotesOverview();return}
@@ -812,15 +800,21 @@ $('#setClose').addEventListener('click',()=>$('#settings').hidden=true);
 /* ---------- opening files ---------- */
 function showWelcome(){const c=$('#wContinue');
   if(S&&!S.sample){c.textContent='Continue: '+(S.mode==='notes'?'notes on '+S.docTitle:(S.mode==='revise'?'revising ':'')+(S.chapterTitle||'this chapter'));c.hidden=false}else c.hidden=true;
-  $('#welcome').hidden=false}
+  $('#welcome').hidden=false;
+  const box=$('#wOthers');box.textContent='';
+  otherUnsaved().then(list=>{list.slice(0,6).forEach(({k,s})=>{const row=document.createElement('div');row.style.cssText='display:flex;gap:6px;margin-bottom:8px';
+    const x=document.createElement('button');x.type='button';x.className='btn';x.textContent='\u2715';x.title='Throw away these notes';x.setAttribute('aria-label','Throw away these notes');
+    x.addEventListener('click',()=>{if(x.dataset.arm){vault.del(k).then(()=>row.remove());return}x.dataset.arm='1';x.textContent='Throw away?';x.classList.add('danger-note');setTimeout(()=>{if(x.isConnected){delete x.dataset.arm;x.textContent='\u2715';x.classList.remove('danger-note')}},3500)});
+    const b=document.createElement('button');b.type='button';b.className='btn';b.style.cssText='flex:1;justify-content:flex-start;min-height:40px;min-width:0';
+    b.textContent='Not saved yet: '+(s.mode==='notes'?'notes on '+s.docTitle:(s.chapterTitle||'a chapter')+(s.docTitle?' \u00b7 '+s.docTitle:''));
+    b.addEventListener('click',()=>{$('#welcome').hidden=true;startSession(s)});row.appendChild(b);row.appendChild(x);box.appendChild(row)})})}
 $('#wContinue').addEventListener('click',()=>$('#welcome').hidden=true);
 document.querySelectorAll('.door').forEach(b=>b.addEventListener('click',()=>{pendingMode=b.dataset.mode;$('#welcome').hidden=true;
   if(pendingMode==='notes'){$('#tpInput').value='';$('#titlePrompt').hidden=false;setTimeout(()=>$('#tpInput').focus(),60)}else $('#fileIn').click()}));
 $('#tpForm').addEventListener('submit',e=>{e.preventDefault();const t=$('#tpInput').value.trim();if(!t){$('#tpInput').focus();return}
   $('#titlePrompt').hidden=true;
   const fresh={v:2,sample:false,mode:'notes',docTitle:t,chapterTitle:'Letter notes',paras:[],highlights:[],chapterNote:{strokes:[]},cards:[]};
-  const saved=store.get(sessionKey(fresh));if(saved){try{startSession(JSON.parse(saved));toast('Picked up your notes on '+t+'.');return}catch(_){}}
-  startSession(fresh)});
+  vault.get(sessionKey(fresh)).then(saved=>{if(saved){try{startSession(JSON.parse(saved));toast('Picked up your notes on '+t+'.');return}catch(_){}}startSession(fresh)})});
 $('#openBtn').addEventListener('click',showWelcome);$('#bannerOpen').addEventListener('click',showWelcome);
 $('#fileIn').addEventListener('change',async e=>{
   const f=e.target.files[0];e.target.value='';if(!f)return;const name=f.name.replace(/\.[^.]+$/,'');
@@ -883,12 +877,11 @@ $('#cpClose').addEventListener('click',()=>$('#chapterPick').hidden=true);
 $('#chapterSel').addEventListener('change',e=>openChapter(+e.target.value));
 function openChapter(i){const c=DOC.chapters[i];$('#chapterSel').value=i;
   const fresh={v:2,sample:false,mode:pendingMode,docTitle:DOC.title,chapterTitle:c.title,paras:c.paras,highlights:[],chapterNote:{strokes:[]}};
-  const saved=store.get(sessionKey(fresh));if(saved){try{startSession(JSON.parse(saved));toast('Picked up your notes on '+c.title+'.');return}catch(e){}}
-  startSession(fresh)}
-function startSession(s){S=migrate(s);sel=null;rebuildSwatches();Object.keys(hist).forEach(k=>delete hist[k]);
+  vault.get(sessionKey(fresh)).then(saved=>{if(saved){try{startSession(JSON.parse(saved));toast('Picked up your notes on '+c.title+'.');return}catch(e){}}startSession(fresh)})}
+function startSession(s){flush();S=migrate(s);sel=null;rebuildSwatches();Object.keys(hist).forEach(k=>delete hist[k]);
   document.body.classList.toggle('notes',S.mode==='notes');
   if(isNotes()){const c=curCard();if(!c||c.done)openFreshCard(false)}
-  renderReader();reader.scrollTop=0;renderHead();layoutPad(true);renderShelf();if(!S.sample)store.set('rn1:last',sessionKey(S))}
+  renderReader();reader.scrollTop=0;renderHead();layoutPad(true);renderShelf();updateSaveBtn();if(!S.sample){store.set('rn1:last',sessionKey(S));persist()}}
 
 /* ---------- the saved sheet ---------- */
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
@@ -928,20 +921,24 @@ function buildSatzlupe(){
 }
 $('#saveBtn').addEventListener('click',()=>{if(!S)return;$('#svJson').hidden=!isRev();sheetHtml=buildSheet();$('#svFrame').srcdoc=sheetHtml;$('#savePanel').hidden=false});
 $('#svClose').addEventListener('click',()=>$('#savePanel').hidden=true);
+$('#backupAlert').addEventListener('click',()=>$('#saveBtn').click());
 $('#svSave').addEventListener('click',()=>deliver(slug(S.docTitle)+'_'+slug(S.chapterTitle)+'_randnotiz.html',sheetHtml,'text/html'));
 $('#svJson').addEventListener('click',()=>deliver(slug(S.docTitle)+'_'+slug(S.chapterTitle)+'_satzlupe.json',buildSatzlupe(),'application/json'));
 async function deliver(name,content,type){
+  const ok=deliverRaw(name,content,type);const r=await ok;if(r&&type==='text/html'&&S&&!S.sample){S.savedAt=Date.now();updateSaveBtn();persist()}
+}
+async function deliverRaw(name,content,type){
   const file=new File([content],name,{type});
   // 1) inside claude.ai: the viewer's own save prompt
   const d=window.claude&&window.claude.use?await getDownloads():null;
-  if(d){try{await d.save({filename:name,data:file});toast('Saved '+name+'.');$('#savePanel').hidden=true;return}
-    catch(err){const c=err&&err.code;if(c==='declined'){toast('Not saved.');return}if(c==='rate_limited'){toast('A save prompt is already open.');return}}}
+  if(d){try{await d.save({filename:name,data:file});toast('Saved '+name+'.');$('#savePanel').hidden=true;return true}
+    catch(err){const c=err&&err.code;if(c==='declined'){toast('Not saved.');return false}if(c==='rate_limited'){toast('A save prompt is already open.');return false}}}
   // 2) iPad share sheet: Save to Files, Google Drive, AirDrop
-  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});toast('Sent '+name+'.');$('#savePanel').hidden=true;return}}
-  catch(err){if(err&&err.name==='AbortError'){toast('Not saved.');return}}
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});toast('Sent '+name+'.');$('#savePanel').hidden=true;return true}}
+  catch(err){if(err&&err.name==='AbortError'){toast('Not saved.');return false}}
   // 3) plain download
   const url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();
-  setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},5000);toast('Downloading '+name+'. On iPad it lands in Files → Downloads.');$('#savePanel').hidden=true;
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},5000);toast('Downloading '+name+'. On iPad it lands in Files → Downloads.');$('#savePanel').hidden=true;return true;
 }
 
 /* ---------- theme ---------- */
@@ -950,10 +947,10 @@ mq.addEventListener&&mq.addEventListener('change',onTheme);
 new MutationObserver(onTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
 /* ---------- boot ---------- */
-function start(data){
+async function start(data){
   applyText();applySplit();
   let s=data&&data.S;
-  if(!s){const k=store.get('rn1:last');if(k){try{s=JSON.parse(store.get(k)||'null')}catch(e){s=null}}}
+  if(!s){await vault.migrate();const k=store.get('rn1:last');if(k){try{s=JSON.parse(await vault.get(k)||'null')}catch(e){s=null}}}
   if(s){startSession(s);if(data&&data.sel)select(data.sel);else if(!(data&&data.S))showWelcome()}
   else{startSession(sampleSession());showWelcome()}
 }
